@@ -4,16 +4,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Toko Pro Hybrid - Cloud Fix</title>
+    <title>Toko Pro Hybrid - Final System</title>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
-        /* CSS STYLE */
+        /* CSS TETAP SAMA */
         :root {
             --primary: #1e293b;
             --accent: #4f46e5;
@@ -40,6 +39,7 @@
             min-height: 100vh;
         }
 
+        /* LOGIN */
         #login-screen {
             position: fixed;
             inset: 0;
@@ -82,6 +82,7 @@
             opacity: 0.9;
         }
 
+        /* LAYOUT */
         #app {
             display: none;
         }
@@ -165,6 +166,7 @@
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
 
+        /* COMPONENTS */
         .card {
             background: white;
             padding: 24px;
@@ -369,13 +371,11 @@
     <div id="login-screen">
         <div class="login-box">
             <h2 style="color:var(--primary); margin-bottom: 5px;">Toko Pro Hybrid</h2>
-            <p style="color: var(--text-gray); margin-bottom: 25px; font-size: 0.9rem;">Cloud Database (Fixed)</p>
-            <button class="btn-login" style="background: var(--primary); color: white;" onclick="auth('owner')">
-                <i class="fa-solid fa-crown"></i> Login Owner
-            </button>
-            <button class="btn-login" style="background: white; border: 1px solid #cbd5e1;" onclick="auth('karyawan1')">
-                <i class="fa-solid fa-user"></i> Login Karyawan
-            </button>
+            <p style="color: var(--text-gray); margin-bottom: 25px; font-size: 0.9rem;">Sistem Online + Detail Rasa</p>
+            <button class="btn-login" style="background: var(--primary); color: white;" onclick="auth('owner')">Login
+                Owner</button>
+            <button class="btn-login" style="background: white; border: 1px solid #cbd5e1;"
+                onclick="auth('karyawan1')">Login Karyawan</button>
         </div>
     </div>
 
@@ -387,14 +387,14 @@
             <input type="text" id="edit-nama">
             <label style="font-size: 12px; color: grey;">Jumlah Stok</label>
             <input type="number" id="edit-stok">
-            <label style="font-size: 12px; color: grey;">Target</label>
+            <label style="font-size: 12px; color: grey;">Kategori</label>
             <select id="edit-target">
-                <option value="all">Semua Menu</option>
-                <option value="milk">Menu Susu</option>
-                <option value="syrup">Menu Sirup</option>
-                <option value="teh">Menu Teh</option>
+                <option value="all">Umum (Cup/Sedotan)</option>
+                <option value="milk">Susu</option>
+                <option value="teh">Teh</option>
+                <option value="rasa">Bubuk Rasa</option>
             </select>
-            <label style="font-size: 12px; color: grey;">Batas Pemakaian</label>
+            <label style="font-size: 12px; color: grey;">Batas Pemakaian (1 Stok utk brp Cup?)</label>
             <input type="number" id="edit-batas">
             <div style="display: flex; gap: 10px; margin-top: 10px;">
                 <button class="btn btn-primary" style="flex:1" onclick="simpanBahan()">Simpan</button>
@@ -485,7 +485,8 @@
                             <div style="display:flex; justify-content:space-between;"><span>Total</span><b
                                     id="cart-total-text">Rp 0</b></div>
                             <div style="display:flex; justify-content:space-between; color:var(--accent);">
-                                <span>Kembalian</span><b id="change-text">Rp 0</b></div>
+                                <span>Kembalian</span><b id="change-text">Rp 0</b>
+                            </div>
                         </div>
                         <input type="number" id="cash-input" placeholder="Tunai..." oninput="calcChange()">
                         <button class="btn btn-primary" style="width:100%" onclick="processCheckout()">BAYAR</button>
@@ -517,13 +518,15 @@
 
             <div id="page-riwayat" class="section">
                 <div class="card">
-                    <h3>10 Transaksi Terakhir</h3>
+                    <h3>Riwayat Transaksi</h3>
+                    <p style="font-size:12px; color:grey; margin-bottom:10px;">*Detail item terlihat di sini. Hanya
+                        Owner yang bisa hapus.</p>
                     <div class="table-container">
                         <table>
                             <thead>
                                 <tr>
                                     <th>Waktu</th>
-                                    <th>Barang</th>
+                                    <th>Rincian Item</th>
                                     <th>Kasir</th>
                                     <th>Total</th>
                                     <th>Aksi</th>
@@ -568,25 +571,25 @@
         // 1. CONFIG SUPABASE
         // ==========================================
         const SUPABASE_URL = 'https://lkjuhhruttprwgcjbfjo.supabase.co';
-        // Pastikan key ini benar (Anon Key yang panjang)
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxranVoaHJ1dHRwcndnY2piZmpvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5ODE2MzIsImV4cCI6MjA4NDU1NzYzMn0.Rmz_EOX5L12Nnzze--KYtZoU1ZtzkwJvgVmdwNKRC1c';
 
-        // Perbaikan: Pakai 'window.supabase' biar aman dari bentrok nama
         const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // AUTH DATA (Mock)
+        // DATA USERS
         const MOCK_USERS = [
             { username: 'owner', password: '123', role: 'owner' },
             { username: 'karyawan1', password: '123', role: 'karyawan' }
         ];
 
+        // LIST MENU
         const MENU = [
-            { id: 1, nama: "Teh Manis Jumbo", harga: 4000 }, { id: 2, nama: "Leci Tea", harga: 6000 },
-            { id: 3, nama: "Strawberry Tea", harga: 6000 }, { id: 4, nama: "Grape Tea", harga: 6000 },
-            { id: 5, nama: "Pineapple Tea", harga: 6000 }, { id: 6, nama: "Orange Tea", harga: 6000 },
-            { id: 7, nama: "Mango Tea", harga: 6000 }, { id: 8, nama: "Sirsak Tea", harga: 6000 },
-            { id: 9, nama: "Guava Tea", harga: 6000 }, { id: 10, nama: "Teh Melon", harga: 6000 },
-            { id: 11, nama: "Teh Naga", harga: 8000 }, { id: 12, nama: "Lemon Tea", harga: 8000 },
+            { id: 1, nama: "Teh Manis Jumbo", harga: 4000 },
+            { id: 2, nama: "Leci Tea", harga: 6000 }, { id: 3, nama: "Strawberry Tea", harga: 6000 },
+            { id: 4, nama: "Grape Tea", harga: 6000 }, { id: 5, nama: "Pineapple Tea", harga: 6000 },
+            { id: 6, nama: "Orange Tea", harga: 6000 }, { id: 7, nama: "Mango Tea", harga: 6000 },
+            { id: 8, nama: "Sirsak Tea", harga: 6000 }, { id: 9, nama: "Guava Tea", harga: 6000 },
+            { id: 10, nama: "Teh Melon", harga: 6000 }, { id: 11, nama: "Teh Naga", harga: 8000 },
+            { id: 12, nama: "Lemon Tea", harga: 8000 },
             { id: 13, nama: "Milk Tea", harga: 6000 }, { id: 14, nama: "Leci Milk", harga: 9000 },
             { id: 15, nama: "Strawberry Milk", harga: 9000 }, { id: 16, nama: "Grape Milk", harga: 9000 },
             { id: 17, nama: "Pineapple Milk", harga: 9000 }, { id: 18, nama: "Orange Milk", harga: 9000 },
@@ -683,7 +686,7 @@
             if (confirm("Hapus?")) { await db.from('inventory').delete().eq('id', id); renderStock(); }
         }
 
-        // --- KASIR ---
+        // --- KASIR & LOGIKA PENGURANGAN BUBUK ---
         function renderMenu() {
             document.getElementById('menu-list').innerHTML = MENU.map(m => `
                 <div class="menu-card" onclick="addToCart(${m.id})"><b>${m.nama}</b><br><small>Rp ${m.harga.toLocaleString()}</small></div>
@@ -713,32 +716,53 @@
             let bayar = parseInt(document.getElementById('cash-input').value || 0);
             document.getElementById('change-text').innerText = "Rp " + (bayar - total).toLocaleString();
         }
+
         async function processCheckout() {
             if (!currentUser) return alert("Login dulu!");
             let total = parseInt(document.getElementById('cart-total-text').dataset.val || 0);
             if (!total || !cart.length) return;
 
-            // Simpan Transaksi
+            // 1. Simpan Transaksi dengan Detail Item (JSON)
             const { error } = await db.from('transactions').insert([{
                 tanggal: new Date().toISOString().split('T')[0],
                 jam: new Date().toLocaleTimeString(),
                 total: total,
                 kasir: currentUser.username,
-                items: cart
+                items: cart // Simpan seluruh object cart
             }]);
 
             if (error) return alert("Error Simpan: " + error.message);
 
-            // Update Stok
+            // 2. Logika Pengurangan Stok (Smart Ingredient Matching)
             const { data: inventory } = await db.from('inventory').select('*');
+
             cart.forEach(item => {
-                let name = item.nama.toLowerCase();
+                let name = item.nama.toLowerCase(); // Nama Menu, misal: "leci tea"
+
                 inventory.forEach(async (b) => {
                     let isUsed = false;
+                    let bahanName = b.nama.toLowerCase(); // Nama Bahan, misal: "bubuk leci"
+
+                    // A. Bahan Umum (Selalu kurang)
                     if (b.target === 'all') isUsed = true;
+
+                    // B. Teh (Kurang jika nama menu ada 'tea'/'teh', kecuali full milk)
                     else if (b.target === 'teh' && (name.includes('tea') || name.includes('teh') || name.includes('manis'))) isUsed = true;
-                    else if (b.target === 'milk' && (name.includes('milk') || name.includes('susu') || name.includes('thai'))) isUsed = true;
-                    else if (b.target === 'syrup' && (name.includes('leci') || name.includes('strawberry') || name.includes('mango'))) isUsed = true;
+
+                    // C. Susu (Kurang jika nama menu ada 'milk'/'susu'/'thai'/'coklat' dll)
+                    else if (b.target === 'milk' && (name.includes('milk') || name.includes('susu') || name.includes('thai') || name.includes('coklat') || name.includes('taro'))) isUsed = true;
+
+                    // D. BUBUK PERASA (Smart Matching)
+                    // Logika: Jika nama bahan mengandung kata kunci dari nama menu
+                    // Contoh: Menu "Leci Tea" mengandung "leci", Bahan "Bubuk Leci" mengandung "leci" -> MATCH!
+                    else if (b.target === 'rasa') {
+                        // Kita ambil kata kunci rasa dari nama bahan (misal "Bubuk Leci" -> "leci")
+                        let rasaKey = bahanName.replace('bubuk ', '').trim();
+                        if (name.includes(rasaKey)) {
+                            isUsed = true;
+                        }
+                    }
+
                     if (isUsed) {
                         let stokBaru = b.stok - Math.ceil(item.qty / b.batas);
                         await db.from('inventory').update({ stok: stokBaru }).eq('id', b.id);
@@ -746,6 +770,39 @@
                 });
             });
             alert("Transaksi Sukses!"); cart = []; renderCart(); renderStock();
+        }
+
+        // --- RIWAYAT (DETAIL ITEM) ---
+        async function renderHistory() {
+            const { data } = await db.from('transactions').select('*').order('created_at', { ascending: false }).limit(10);
+            let isOwner = currentUser && currentUser.role === 'owner';
+
+            if (data) {
+                document.getElementById('history-table-body').innerHTML = data.map(t => {
+                    // Parsing JSON items menjadi list string
+                    let details = '-';
+                    if (t.items && Array.isArray(t.items)) {
+                        details = t.items.map(i => `• ${i.nama} (x${i.qty})`).join('<br>');
+                    }
+
+                    return `
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="vertical-align:top"><small>${t.tanggal}</small><br>${t.jam}</td>
+                        <td style="font-size:13px; color:#334155; vertical-align:top">${details}</td>
+                        <td style="vertical-align:top">${t.kasir}</td>
+                        <td style="vertical-align:top"><b>Rp ${t.total.toLocaleString()}</b></td>
+                        <td style="vertical-align:top">
+                            ${isOwner ? `<button onclick="deleteTrans('${t.id}')" class="btn-danger" style="padding:2px 8px; font-size:12px;">Hapus</button>` : ''}
+                        </td>
+                    </tr>
+                `}).join('');
+            }
+        }
+
+        async function deleteTrans(id) {
+            if (!confirm("Yakin hapus transaksi ini? Stok tidak akan kembali otomatis.")) return;
+            await db.from('transactions').delete().eq('id', id);
+            renderHistory();
         }
 
         // --- DASHBOARD ---
@@ -777,11 +834,7 @@
         }
         async function delExp(id) { await db.from('expenses').delete().eq('id', id); updateDashboard(); }
 
-        // --- RIWAYAT & ABSEN ---
-        async function renderHistory() {
-            const { data } = await db.from('transactions').select('*').order('created_at', { ascending: false }).limit(10);
-            if (data) document.getElementById('history-table-body').innerHTML = data.map(t => `<tr><td>${t.tanggal}</td><td>Detail...</td><td>${t.kasir}</td><td>${t.total.toLocaleString()}</td><td>X</td></tr>`).join('');
-        }
+        // --- ABSEN ---
         async function doAbsen(tipe) {
             let today = new Date().toISOString().split('T')[0], now = new Date().toLocaleTimeString(), nama = currentUser.username;
             const { data: existing } = await db.from('attendance').select('*').eq('tgl', today).eq('nama', nama).single();
