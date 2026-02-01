@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Toko Pro Hybrid - Cloud Fix</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* CSS STYLE */
+        :root {
+            --primary: #1e293b;
+            --accent: #4f46e5;
+            --bg-body: #f1f5f9;
+            --text-dark: #0f172a;
+            --text-gray: #64748b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --sidebar-width: 260px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: var(--bg-body);
+            color: var(--text-dark);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        #login-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: var(--primary);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .login-box {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            margin-top: 1rem;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: 0.2s;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            opacity: 0.9;
+        }
+
+        #app {
+            display: none;
+        }
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: var(--sidebar-width);
+            background: var(--primary);
+            color: white;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease;
+            box-shadow: 4px 0 24px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-header {
+            padding: 25px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 10px;
+        }
+
+        .nav-item {
+            margin: 4px 15px;
+            padding: 14px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            color: #cbd5e1;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+        }
+
+        .nav-item.active {
+            background: var(--accent);
+            color: white;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+        }
+
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 30px 40px;
+            transition: margin 0.3s ease;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .page-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .mobile-toggle {
+            display: none;
+            background: white;
+            border: none;
+            font-size: 1.2rem;
+            padding: 10px;
+            border-radius: 8px;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 999;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .card {
+            background: white;
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            margin-bottom: 24px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .grid-2-1 {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+        }
+
+        .stat-card {
+            padding: 24px;
+            border-radius: 16px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            height: 140px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .stat-icon {
+            position: absolute;
+            right: -10px;
+            bottom: -10px;
+            font-size: 5rem;
+            opacity: 0.2;
+            transform: rotate(-15deg);
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 16px;
+            background: #f8fafc;
+            color: var(--text-gray);
+            font-size: 0.85rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        td {
+            padding: 16px;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 0.95rem;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
+            transition: 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.8rem;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        #menu-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 12px;
+        }
+
+        .menu-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .menu-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-3px);
+        }
+
+        .section {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        #modal-stok {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 25px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 20px;
+                padding-top: 80px;
+            }
+
+            .mobile-toggle {
+                display: block;
+            }
+
+            .grid-3,
+            .grid-2-1 {
+                grid-template-columns: 1fr;
+            }
+
+            .page-title {
+                margin-left: 50px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="login-screen">
+        <div class="login-box">
+            <h2 style="color:var(--primary); margin-bottom: 5px;">Toko Pro Hybrid</h2>
+            <p style="color: var(--text-gray); margin-bottom: 25px; font-size: 0.9rem;">Cloud Database (Fixed)</p>
+            <button class="btn-login" style="background: var(--primary); color: white;" onclick="auth('owner')">
+                <i class="fa-solid fa-crown"></i> Login Owner
+            </button>
+            <button class="btn-login" style="background: white; border: 1px solid #cbd5e1;" onclick="auth('karyawan1')">
+                <i class="fa-solid fa-user"></i> Login Karyawan
+            </button>
+        </div>
+    </div>
+
+    <div id="modal-stok">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 15px;" id="modal-title">Edit Bahan Baku</h3>
+            <input type="hidden" id="edit-id">
+            <label style="font-size: 12px; color: grey;">Nama Bahan</label>
+            <input type="text" id="edit-nama">
+            <label style="font-size: 12px; color: grey;">Jumlah Stok</label>
+            <input type="number" id="edit-stok">
+            <label style="font-size: 12px; color: grey;">Target</label>
+            <select id="edit-target">
+                <option value="all">Semua Menu</option>
+                <option value="milk">Menu Susu</option>
+                <option value="syrup">Menu Sirup</option>
+                <option value="teh">Menu Teh</option>
+            </select>
+            <label style="font-size: 12px; color: grey;">Batas Pemakaian</label>
+            <input type="number" id="edit-batas">
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button class="btn btn-primary" style="flex:1" onclick="simpanBahan()">Simpan</button>
+                <button class="btn btn-danger" style="flex:1" onclick="closeModal()">Batal</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="app">
+        <button class="mobile-toggle" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h3 id="display-user">USER</h3><small id="display-role">ROLE</small>
+            </div>
+            <div style="flex: 1;">
+                <div class="nav-item active" onclick="showPage('dashboard', this)"><i class="fa-solid fa-chart-pie"></i>
+                    Dashboard</div>
+                <div class="nav-item" onclick="showPage('kasir', this)"><i class="fa-solid fa-cash-register"></i> Kasir
+                </div>
+                <div class="nav-item" onclick="showPage('gudang', this)"><i class="fa-solid fa-boxes-stacked"></i> Stok
+                    Bahan</div>
+                <div class="nav-item" onclick="showPage('riwayat', this)"><i class="fa-solid fa-clock-rotate-left"></i>
+                    Riwayat</div>
+                <div class="nav-item" onclick="showPage('absen', this)"><i class="fa-solid fa-user-clock"></i> Absensi
+                </div>
+            </div>
+            <div style="padding: 20px;"><button class="btn btn-danger" style="width: 100%"
+                    onclick="location.reload()">Keluar</button></div>
+        </div>
+
+        <div class="main-content">
+            <div class="top-bar">
+                <h2 class="page-title" id="page-title">DASHBOARD</h2><b id="date-display"></b>
+            </div>
+
+            <div id="page-dashboard" class="section active">
+                <div class="grid-3">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #4f46e5, #4338ca);">
+                        <span>Omset</span>
+                        <h2 id="stat-omset">Loading...</h2>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #ef4444, #b91c1c);">
+                        <span>Beban</span>
+                        <h2 id="stat-beban">Loading...</h2>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #10b981, #059669);">
+                        <span>Laba</span>
+                        <h2 id="stat-laba">Loading...</h2>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3 style="margin-bottom: 20px;">Grafik 7 Hari Terakhir</h3>
+                    <div style="height: 250px;"><canvas id="salesChart"></canvas></div>
+                </div>
+                <div class="grid-2-1">
+                    <div class="card">
+                        <h3>Beban Hari Ini</h3>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Ket</th>
+                                        <th>Jumlah</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="expense-table-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>Catat Beban</h3>
+                        <input type="text" id="exp-name" placeholder="Nama Keperluan">
+                        <input type="number" id="exp-amount" placeholder="Biaya (Rp)">
+                        <button class="btn btn-danger" style="width:100%" onclick="addExpense()">Simpan</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="page-kasir" class="section">
+                <div class="grid-2-1">
+                    <div id="menu-list"></div>
+                    <div class="card" style="height: fit-content; position: sticky; top: 20px;">
+                        <h3>Keranjang</h3>
+                        <div id="cart-items" style="margin: 15px 0; max-height: 200px; overflow-y: auto;"></div>
+                        <div style="background: #f8fafc; padding: 15px; border-radius: 10px; margin-bottom: 10px;">
+                            <div style="display:flex; justify-content:space-between;"><span>Total</span><b
+                                    id="cart-total-text">Rp 0</b></div>
+                            <div style="display:flex; justify-content:space-between; color:var(--accent);">
+                                <span>Kembalian</span><b id="change-text">Rp 0</b></div>
+                        </div>
+                        <input type="number" id="cash-input" placeholder="Tunai..." oninput="calcChange()">
+                        <button class="btn btn-primary" style="width:100%" onclick="processCheckout()">BAYAR</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="page-gudang" class="section">
+                <div class="card">
+                    <div style="display:flex; justify-content:space-between; margin-bottom: 20px;">
+                        <h3>Stok Bahan Baku</h3>
+                        <button class="btn btn-primary btn-sm" onclick="openModal()">+ Bahan Baru</button>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Bahan</th>
+                                    <th>Stok</th>
+                                    <th>Aturan</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="stock-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="page-riwayat" class="section">
+                <div class="card">
+                    <h3>10 Transaksi Terakhir</h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Waktu</th>
+                                    <th>Barang</th>
+                                    <th>Kasir</th>
+                                    <th>Total</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="page-absen" class="section">
+                <div class="grid-2-1">
+                    <div class="card">
+                        <h3>Absensi Hari Ini</h3>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Nama</th>
+                                        <th>Masuk</th>
+                                        <th>Pulang</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="absen-table-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card" style="text-align: center;">
+                        <button class="btn btn-primary" style="width:100%; margin-bottom: 10px;"
+                            onclick="doAbsen('MASUK')">ABSEN MASUK</button>
+                        <button class="btn btn-danger" style="width:100%" onclick="doAbsen('PULANG')">ABSEN
+                            PULANG</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 1. CONFIG SUPABASE
+        // ==========================================
+        const SUPABASE_URL = 'https://lkjuhhruttprwgcjbfjo.supabase.co';
+        // Pastikan key ini benar (Anon Key yang panjang)
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxranVoaHJ1dHRwcndnY2piZmpvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5ODE2MzIsImV4cCI6MjA4NDU1NzYzMn0.Rmz_EOX5L12Nnzze--KYtZoU1ZtzkwJvgVmdwNKRC1c';
+
+        // Perbaikan: Pakai 'window.supabase' biar aman dari bentrok nama
+        const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // AUTH DATA (Mock)
+        const MOCK_USERS = [
+            { username: 'owner', password: '123', role: 'owner' },
+            { username: 'karyawan1', password: '123', role: 'karyawan' }
+        ];
+
+        const MENU = [
+            { id: 1, nama: "Teh Manis Jumbo", harga: 4000 }, { id: 2, nama: "Leci Tea", harga: 6000 },
+            { id: 3, nama: "Strawberry Tea", harga: 6000 }, { id: 4, nama: "Grape Tea", harga: 6000 },
+            { id: 5, nama: "Pineapple Tea", harga: 6000 }, { id: 6, nama: "Orange Tea", harga: 6000 },
+            { id: 7, nama: "Mango Tea", harga: 6000 }, { id: 8, nama: "Sirsak Tea", harga: 6000 },
+            { id: 9, nama: "Guava Tea", harga: 6000 }, { id: 10, nama: "Teh Melon", harga: 6000 },
+            { id: 11, nama: "Teh Naga", harga: 8000 }, { id: 12, nama: "Lemon Tea", harga: 8000 },
+            { id: 13, nama: "Milk Tea", harga: 6000 }, { id: 14, nama: "Leci Milk", harga: 9000 },
+            { id: 15, nama: "Strawberry Milk", harga: 9000 }, { id: 16, nama: "Grape Milk", harga: 9000 },
+            { id: 17, nama: "Pineapple Milk", harga: 9000 }, { id: 18, nama: "Orange Milk", harga: 9000 },
+            { id: 19, nama: "Mango Milk", harga: 9000 }, { id: 20, nama: "Sirsak Milk", harga: 9000 },
+            { id: 21, nama: "Guava Milk", harga: 9000 }, { id: 22, nama: "Susu Melon", harga: 9000 },
+            { id: 23, nama: "Thai Tea", harga: 8000 }, { id: 24, nama: "Green Tea", harga: 9000 },
+            { id: 25, nama: "Taro Jumbo", harga: 10000 }, { id: 26, nama: "Vanilla Jumbo", harga: 11000 },
+            { id: 27, nama: "Coklat Jumbo", harga: 11000 }, { id: 28, nama: "Permen Karet", harga: 12000 },
+            { id: 29, nama: "Red Velvet", harga: 13000 }
+        ];
+
+        let currentUser = null, cart = [], myChart = null;
+
+        // INIT
+        function initApp() {
+            document.getElementById('date-display').innerText = new Date().toLocaleDateString('id-ID');
+        }
+
+        // --- AUTH ---
+        function auth(role) {
+            let pw = prompt("Password:", "123");
+            let user = MOCK_USERS.find(u => u.username === role && u.password === pw);
+            if (user) {
+                currentUser = user;
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('app').style.display = 'block';
+                document.getElementById('display-user').innerText = user.username.toUpperCase();
+                document.getElementById('display-role').innerText = user.role.toUpperCase();
+
+                initChart(); renderMenu(); updateDashboard(); renderStock();
+            } else { alert("Salah!"); }
+        }
+
+        function showPage(pageId, el) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.getElementById('page-' + pageId).classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            el.classList.add('active');
+            document.getElementById('page-title').innerText = pageId.toUpperCase();
+            if (pageId === 'dashboard') updateDashboard();
+            if (pageId === 'gudang') renderStock();
+            if (pageId === 'riwayat') renderHistory();
+            if (pageId === 'absen') renderAbsen();
+            if (window.innerWidth <= 992) toggleSidebar(true);
+        }
+
+        function toggleSidebar(forceClose = false) {
+            const sb = document.getElementById('sidebar');
+            if (forceClose) sb.classList.remove('show'); else sb.classList.toggle('show');
+        }
+
+        // --- STOK (DATABASE) ---
+        async function renderStock() {
+            const { data, error } = await db.from('inventory').select('*').order('nama', { ascending: true });
+            if (error) { console.error("Error Stok:", error); return; }
+
+            document.getElementById('stock-table-body').innerHTML = data.map(b => `
+                <tr>
+                    <td><b>${b.nama}</b></td>
+                    <td style="color:${b.stok < 5 ? 'red' : 'green'}"><b>${b.stok}</b></td>
+                    <td><small>Tgt: ${b.target} | Bts: ${b.batas}</small></td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" onclick="openModal('${b.id}', '${b.nama}', ${b.stok}, '${b.target}', ${b.batas})"><i class="fa-solid fa-pencil"></i></button>
+                        <button class="btn btn-danger btn-sm" onclick="hapusBahan('${b.id}')"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function openModal(id = null, nama = '', stok = '', target = 'all', batas = 1) {
+            document.getElementById('modal-stok').style.display = 'flex';
+            document.getElementById('edit-id').value = id || "";
+            document.getElementById('edit-nama').value = nama;
+            document.getElementById('edit-stok').value = stok;
+            document.getElementById('edit-target').value = target;
+            document.getElementById('edit-batas').value = batas;
+        }
+        function closeModal() { document.getElementById('modal-stok').style.display = 'none'; }
+
+        async function simpanBahan() {
+            const id = document.getElementById('edit-id').value;
+            const nama = document.getElementById('edit-nama').value;
+            const stok = parseInt(document.getElementById('edit-stok').value);
+            const target = document.getElementById('edit-target').value;
+            const batas = parseInt(document.getElementById('edit-batas').value);
+            const payload = { nama, stok, target, batas };
+
+            if (id) await db.from('inventory').update(payload).eq('id', id);
+            else await db.from('inventory').insert([payload]);
+            closeModal(); renderStock();
+        }
+
+        async function hapusBahan(id) {
+            if (confirm("Hapus?")) { await db.from('inventory').delete().eq('id', id); renderStock(); }
+        }
+
+        // --- KASIR ---
+        function renderMenu() {
+            document.getElementById('menu-list').innerHTML = MENU.map(m => `
+                <div class="menu-card" onclick="addToCart(${m.id})"><b>${m.nama}</b><br><small>Rp ${m.harga.toLocaleString()}</small></div>
+            `).join('');
+        }
+        function addToCart(id) {
+            let m = MENU.find(x => x.id === id);
+            let item = cart.find(x => x.id === id);
+            if (item) item.qty++; else cart.push({ ...m, qty: 1 });
+            renderCart();
+        }
+        function renderCart() {
+            let total = 0;
+            document.getElementById('cart-items').innerHTML = cart.length ? cart.map((c, i) => {
+                total += (c.harga * c.qty);
+                return `<div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:8px">
+                    <span>${c.nama} x${c.qty}</span>
+                    <span>Rp ${(c.harga * c.qty).toLocaleString()} <i class="fa fa-times" style="color:red; cursor:pointer" onclick="cart.splice(${i},1);renderCart()"></i></span>
+                </div>`;
+            }).join('') : '<p style="text-align:center; color:grey">Kosong</p>';
+            document.getElementById('cart-total-text').innerText = "Rp " + total.toLocaleString();
+            document.getElementById('cart-total-text').dataset.val = total;
+            calcChange();
+        }
+        function calcChange() {
+            let total = parseInt(document.getElementById('cart-total-text').dataset.val || 0);
+            let bayar = parseInt(document.getElementById('cash-input').value || 0);
+            document.getElementById('change-text').innerText = "Rp " + (bayar - total).toLocaleString();
+        }
+        async function processCheckout() {
+            if (!currentUser) return alert("Login dulu!");
+            let total = parseInt(document.getElementById('cart-total-text').dataset.val || 0);
+            if (!total || !cart.length) return;
+
+            // Simpan Transaksi
+            const { error } = await db.from('transactions').insert([{
+                tanggal: new Date().toISOString().split('T')[0],
+                jam: new Date().toLocaleTimeString(),
+                total: total,
+                kasir: currentUser.username,
+                items: cart
+            }]);
+
+            if (error) return alert("Error Simpan: " + error.message);
+
+            // Update Stok
+            const { data: inventory } = await db.from('inventory').select('*');
+            cart.forEach(item => {
+                let name = item.nama.toLowerCase();
+                inventory.forEach(async (b) => {
+                    let isUsed = false;
+                    if (b.target === 'all') isUsed = true;
+                    else if (b.target === 'teh' && (name.includes('tea') || name.includes('teh') || name.includes('manis'))) isUsed = true;
+                    else if (b.target === 'milk' && (name.includes('milk') || name.includes('susu') || name.includes('thai'))) isUsed = true;
+                    else if (b.target === 'syrup' && (name.includes('leci') || name.includes('strawberry') || name.includes('mango'))) isUsed = true;
+                    if (isUsed) {
+                        let stokBaru = b.stok - Math.ceil(item.qty / b.batas);
+                        await db.from('inventory').update({ stok: stokBaru }).eq('id', b.id);
+                    }
+                });
+            });
+            alert("Transaksi Sukses!"); cart = []; renderCart(); renderStock();
+        }
+
+        // --- DASHBOARD ---
+        async function updateDashboard() {
+            const { data: trans } = await db.from('transactions').select('total');
+            const { data: beban } = await db.from('expenses').select('jumlah');
+
+            const totalOmset = trans ? trans.reduce((a, b) => a + b.total, 0) : 0;
+            const totalBeban = beban ? beban.reduce((a, b) => a + b.jumlah, 0) : 0;
+
+            document.getElementById('stat-omset').innerText = "Rp " + totalOmset.toLocaleString();
+            document.getElementById('stat-beban').innerText = "Rp " + totalBeban.toLocaleString();
+            document.getElementById('stat-laba').innerText = "Rp " + (totalOmset - totalBeban).toLocaleString();
+            renderExpenseTable();
+        }
+        async function addExpense() {
+            let ket = document.getElementById('exp-name').value;
+            let jumlah = parseInt(document.getElementById('exp-amount').value);
+            if (ket && jumlah) {
+                await db.from('expenses').insert([{ tanggal: new Date().toISOString().split('T')[0], ket, jumlah }]);
+                updateDashboard();
+                document.getElementById('exp-name').value = ''; document.getElementById('exp-amount').value = '';
+            }
+        }
+        async function renderExpenseTable() {
+            let today = new Date().toISOString().split('T')[0];
+            const { data } = await db.from('expenses').select('*').eq('tanggal', today);
+            if (data) document.getElementById('expense-table-body').innerHTML = data.map(x => `<tr><td>${x.ket}</td><td>Rp ${x.jumlah.toLocaleString()}</td><td><button onclick="delExp('${x.id}')" class="btn-danger">X</button></td></tr>`).join('');
+        }
+        async function delExp(id) { await db.from('expenses').delete().eq('id', id); updateDashboard(); }
+
+        // --- RIWAYAT & ABSEN ---
+        async function renderHistory() {
+            const { data } = await db.from('transactions').select('*').order('created_at', { ascending: false }).limit(10);
+            if (data) document.getElementById('history-table-body').innerHTML = data.map(t => `<tr><td>${t.tanggal}</td><td>Detail...</td><td>${t.kasir}</td><td>${t.total.toLocaleString()}</td><td>X</td></tr>`).join('');
+        }
+        async function doAbsen(tipe) {
+            let today = new Date().toISOString().split('T')[0], now = new Date().toLocaleTimeString(), nama = currentUser.username;
+            const { data: existing } = await db.from('attendance').select('*').eq('tgl', today).eq('nama', nama).single();
+            if (tipe === 'MASUK') {
+                if (existing) alert("Sudah!"); else await db.from('attendance').insert([{ tgl: today, nama, masuk: now, pulang: '-' }]);
+            } else {
+                if (!existing) alert("Belum masuk!"); else await db.from('attendance').update({ pulang: now }).eq('id', existing.id);
+            }
+            renderAbsen();
+        }
+        async function renderAbsen() {
+            let today = new Date().toISOString().split('T')[0];
+            const { data } = await db.from('attendance').select('*').eq('tgl', today);
+            if (data) document.getElementById('absen-table-body').innerHTML = data.map(x => `<tr><td>${x.nama}</td><td>${x.masuk}</td><td>${x.pulang}</td></tr>`).join('');
+        }
+
+        function initChart() {
+            const ctx = document.getElementById('salesChart').getContext('2d');
+            myChart = new Chart(ctx, { type: 'line', data: { labels: [], datasets: [{ label: 'Omset', data: [] }] } });
+        }
+
+        initApp();
+    </script>
+</body>
+
+</html>
